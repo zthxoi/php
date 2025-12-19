@@ -13,21 +13,25 @@ declare(strict_types=1);
   (чтобы избавиться от данных, отправленных методом POST)
 */
 
-define('FILENAME', 'users.txt');
-
+// Определяем путь к файлу в папке db
+define('FILEPATH', __DIR__ . '/db/users.txt');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['fname'], $_POST['lname'])) {
-  // фильтруем полученные значения
-  $fname = trim(htmlspecialchars($_POST['fname']));
-  $lname = trim(htmlspecialchars($_POST['lname']));
+    // фильтруем полученные значения
+    $fname = trim(htmlspecialchars($_POST['fname']));
+    $lname = trim(htmlspecialchars($_POST['lname']));
 
+    // Проверяем, что оба поля не пустые
+    if (!empty($fname) && !empty($lname)) {
+        $line = "$fname $lname\n";
+        
+        // Записываем в файл
+        file_put_contents(FILEPATH, $line, FILE_APPEND);
 
-  $line = "$fname $lname\n";
-  file_put_contents(FILENAME, $line, FILE_APPEND);
-
-  // Перезапрос текущей страницы, чтобы избавиться от данных POST
-  header("Location: " . $_SERVER['PHP_SELF']);
-  exit;
+        // Перезапрос текущей страницы, чтобы избавиться от данных POST
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -45,14 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['fname'], $_POST['lname
   <h1>Заполните форму</h1>
 
   <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
-
     Имя: <input type="text" name="fname" required><br>
     Фамилия: <input type="text" name="lname" required><br>
-
     <br>
-
     <input type="submit" value="Отправить!">
-
   </form>
 
   <?php
@@ -65,15 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['fname'], $_POST['lname
   - После этого выведите размер файла в байтах.
   */
 
-  if (file_exists(FILENAME)) {
+  if (file_exists(FILEPATH)) {
+      $lines = file(FILEPATH, FILE_IGNORE_NEW_LINES);
 
-    $lines = file(FILENAME, FILE_IGNORE_NEW_LINES);
-
-    foreach ($lines as $lineNumber => $line)
-      echo ($lineNumber + 1) . '. ' . htmlspecialchars($line) . "<br>";
-  
-
-    echo "<br>Размер файла: " . filesize(FILENAME) . ' байт.';
+      foreach ($lines as $lineNumber => $line)
+          echo ($lineNumber + 1) . '. ' . htmlspecialchars($line) . "<br>";
+      
+      echo "<br>Размер файла: " . filesize(FILEPATH) . ' байт.';
+  } else {
+      echo "<p>Файл не найден. Сначала добавьте данные через форму.</p>";
   }
   ?>
 
