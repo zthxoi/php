@@ -66,6 +66,28 @@ if (isset($_GET['delete_id'])) {
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Гостевая книга</title>
+  <script>
+    // Функция подтверждения удаления
+    function confirmDelete(messageId, authorName) {
+      return confirm("Вы действительно хотите удалить сообщение от " + authorName + "?");
+    }
+  </script>
+  <style>
+    .message {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .delete-link {
+      color: red;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .delete-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 
 <body>
@@ -108,15 +130,21 @@ if (isset($_GET['delete_id'])) {
     echo "<p>Всего сообщений: $count</p>";
 
     while ($row = mysqli_fetch_assoc($result)) {
-
-      echo "<div>";
-      echo "<p><strong>{$row['name']}</strong> ({$row['email']})</p>";
-      echo "<p>{$row['msg']}</p>";
-      echo "<a href='?delete_id={$row['id']}'>Удалить</a></div><hr>";
-
+      echo "<div class='message'>";
+      echo "<p><strong>" . htmlspecialchars($row['name']) . "</strong> (" . htmlspecialchars($row['email']) . ")</p>";
+      echo "<p>" . nl2br(htmlspecialchars($row['msg'])) . "</p>";
+      
+      // Ссылка с подтверждением удаления
+      $authorName = htmlspecialchars($row['name'], ENT_QUOTES);
+      $deleteUrl = "?delete_id={$row['id']}";
+      echo "<a href='$deleteUrl' class='delete-link' 
+           onclick='return confirmDelete({$row['id']}, \"$authorName\")'>Удалить</a>";
+      
+      echo "</div><hr>";
     }
-  } else
+  } else {
     echo "<p>Ошибка при выборке данных: " . mysqli_error($connection) . "</p>";
+  }
 
   mysqli_close($connection);
   ?>
